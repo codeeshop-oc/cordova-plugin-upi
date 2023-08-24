@@ -39,31 +39,19 @@ public class UPIPlugin extends CordovaPlugin {
     private static String applicationName;
     private CallbackContext callbackContext;
 
-    protected void pluginInitialize() {
-        this.APPLICATIONS.put("Paytm", "net.one97.paytm");
-        this.APPLICATIONS.put("GooglePay", "com.google.android.apps.nbu.paisa.user");
-        this.APPLICATIONS.put("BHIMUPI", "in.org.npci.upiapp");
-        this.APPLICATIONS.put("PhonePe", "com.phonepe.app");
-        this.APPLICATIONS.put("MiPay", "com.mipay.wallet.in");
-        this.APPLICATIONS.put("AmazonPay", "in.amazon.mShop.android.shopping");
-        this.APPLICATIONS.put("TrueCallerUPI", "com.truecaller");
-        this.APPLICATIONS.put("MyAirtelUPI", "com.myairtelapp");
-        this.APPLICATIONS.put("ICICI iMobile", "com.csam.icici.bank.imobile");
-        this.APPLICATIONS.put("Canara Bank", "com.canarabank.mobility");
-        this.APPLICATIONS.put("Yes Bank", "com.atomyes");
-        this.APPLICATIONS.put("Kotak Bank for Tablet", "com.msf.kbank.tablet");
-        this.APPLICATIONS.put("Kotak - 811", "com.msf.kbank.mobile");
-        this.APPLICATIONS.put("HDFC Bank", "com.snapwork.hdfcbank");
-        this.APPLICATIONS.put("Axis Mobile", "com.axis.mobile");
-        this.APPLICATIONS.put("BHIM IndianBank UPI", "com.infrasofttech.indianbankupi");
-        this.APPLICATIONS.put("BHIM Union Bank Pay", "com.fss.ubipsp");
-        this.APPLICATIONS.put("BHIM PNB", "com.fss.pnbpsp");
-        this.APPLICATIONS.put("BHIM SBI Pay", "com.sbi.upi");
-        this.APPLICATIONS.put("YONO SBI", "com.sbi.lotusintouch");
-        this.APPLICATIONS.put("Yono Lite SBI", "com.sbi.SBIFreedomPlus");
-        this.APPLICATIONS.put("BOI Mobile", "com.boi.mpay");
+    private void fetchSupportedApps(CallbackContext callbackContext) {
+        PackageManager packageManager = cordova.getActivity().getPackageManager();
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("upi://pay"));
+        List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 
-    }
+        ArrayList<String> installedApps = new ArrayList<>();
+        for (ResolveInfo resolveInfo : resolveInfoList) {
+            String packageName = resolveInfo.activityInfo.packageName;
+            installedApps.add(packageName);
+        }
+
+        callbackContext.success(new JSONArray(installedApps));
+    }     
 
     private Activity getCurrentActivity() {
         return cordova.getActivity();
@@ -87,35 +75,6 @@ public class UPIPlugin extends CordovaPlugin {
             return true;
         }
         return false;
-    }
-
-    private void fetchSupportedApps(final CallbackContext callbackContext) {
-        JSONArray result = new JSONArray();
-        List<ResolveInfo> appsList = getAllInstalledUPIApps(getCurrentActivity().getApplicationContext());
-        for (ResolveInfo appRI : appsList) {
-            try {
-                JSONObject app = new JSONObject();
-                app.put("appId", appRI.activityInfo.packageName);
-                app.put("appName",
-                        (String) getCurrentActivity().getApplicationContext().getPackageManager()
-                                .getApplicationLabel(getCurrentActivity().getApplicationContext().getPackageManager()
-                                        .getApplicationInfo(appRI.activityInfo.packageName, 0)));
-                result.put(app);
-            } catch (final Exception e) {
-            }
-        }
-        callbackContext.success(result);
-    }
-
-    private List<ResolveInfo> getAllInstalledUPIApps(Context context) {
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(
-                "upi://pay?pn=MERCHANT&pa=M2306160483220675579140@ybl&tid=YBL60c7891e33cb42daaf86b0aeb992a8b9&tr=P1806151323093900554957&am=10.00&cu=INR&url=https://phonepe.com&mc=5311&tn=Payment%20for%20P1806151323093900554957"));
-        List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent,
-                PackageManager.MATCH_DEFAULT_ONLY);
-        Log.i(TAG, "UPI supported apps count " + list.size());
-        return list;
     }
 
     private void acceptPayment(JSONObject options, final CallbackContext callbackContext) {
