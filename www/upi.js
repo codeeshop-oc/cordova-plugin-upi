@@ -12,8 +12,7 @@ var CONFIG = {
     transactionRefUrl: "url"
 }
 
-var supportedApps = function (sCallback, fCallback) {
-    console.log('1.0.5')
+var supportedApps = function (sCallback, fCallback) {    
     cordova.exec(sCallback, fCallback, "UPIPlugin", "supportedApps", []);
 }
 var acceptPayment = function (config, app, sCallback, fCallback) {
